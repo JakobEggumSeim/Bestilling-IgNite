@@ -118,6 +118,13 @@
   a.item-link { font-size: 12px; color: var(--blue); margin-left: 6px; text-decoration: none; }
   a.item-link:hover { text-decoration: underline; }
 
+
+  /* Delete button */
+  .delete-btn { padding: 5px 10px; font-size: 12px; border-radius: var(--radius); border: 1.5px solid var(--gray-200); background: none; cursor: pointer; font-family: inherit; color: var(--gray-400); transition: all 0.15s; }
+  .delete-btn:hover { border-color: var(--red); color: var(--red); background: var(--light-red); }
+  .clear-btn { padding: 8px 16px; font-size: 13px; font-weight: 500; border-radius: var(--radius); border: 1.5px solid var(--gray-200); background: none; cursor: pointer; font-family: inherit; color: var(--gray-400); transition: all 0.15s; margin-left: auto; display: block; margin-bottom: 1rem; }
+  .clear-btn:hover { border-color: var(--red); color: var(--red); background: var(--light-red); }
+
   .section-divider { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-400); margin: 1rem 0 0.5rem; }
 </style>
 </head>
@@ -171,6 +178,7 @@
       <button class="filter-btn" onclick="setFilter('Lav',this)">Lav</button>
       <button class="filter-btn" onclick="setFilter('pending',this)">Ikke bestilt</button>
     </div>
+    <button class="clear-btn" onclick="clearAll()">🗑 Slett alle bestillinger</button>
     <div id="orders-list"></div>
   </div>
 </div>
@@ -360,11 +368,26 @@ function renderOrders() {
     return `<div class="order-card">
       <div class="order-header">
         <div class="order-name">${order.requester} <span style="font-weight:400;color:var(--gray-400)">– ${order.usage}</span></div>
-        <div class="order-meta">${order.time}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="order-meta">${order.time}</div>
+          <button class="delete-btn" onclick="deleteOrder(${order.id})">Slett</button>
+        </div>
       </div>
       ${rows}
     </div>`;
   }).join('');
+}
+
+function deleteOrder(orderId) {
+  if (!confirm('Slette denne bestillingen?')) return;
+  orders = orders.filter(o => o.id !== orderId);
+  saveOrders(); updateStats(); updatePendingCount(); renderOrders();
+}
+
+function clearAll() {
+  if (!confirm('Slette alle bestillinger?')) return;
+  orders = [];
+  saveOrders(); updateStats(); updatePendingCount(); renderOrders();
 }
 
 function updateStats() {
