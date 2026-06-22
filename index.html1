@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IgNite – Bestillingsportal</title>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <style>
   :root {
     --navy: #1F4E79;
@@ -176,13 +176,6 @@
 </div>
 
 <script>
-const EMAILJS_PUBLIC_KEY = 'uEDUOriynpc3dkjsu_';
-const EMAILJS_SERVICE_ID = 'service_kaocxkh';
-const EMAILJS_TEMPLATE_ID = 'template_sr5mp0l';
-const JAKOB_EMAIL = 'jakob@ignite-uio.no';
-
-emailjs.init(EMAILJS_PUBLIC_KEY);
-
 let orders = JSON.parse(localStorage.getItem('ignite_orders') || '[]');
 let filter = 'all';
 let itemCount = 0;
@@ -269,14 +262,21 @@ async function submitOrder() {
   }).join('\n\n');
 
   try {
-    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      name: 'Jakob',
-      requester,
-      usage,
-      time,
-      items: itemsText
+    const res = await fetch('https://formspree.io/f/xqevkead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        name: requester,
+        usage,
+        time,
+        items: itemsText
+      })
     });
-    showMsg('Bestillingen er sendt! Jakob varsles på e-post.', 'alert-success');
+    if (res.ok) {
+      showMsg('Bestillingen er sendt! Jakob varsles på e-post.', 'alert-success');
+    } else {
+      showMsg('Bestillingen er lagret lokalt, men e-postvarsling feilet. Kontakt Jakob direkte.', 'alert-warning');
+    }
   } catch (e) {
     showMsg('Bestillingen er lagret lokalt, men e-postvarsling feilet. Kontakt Jakob direkte.', 'alert-warning');
   }
