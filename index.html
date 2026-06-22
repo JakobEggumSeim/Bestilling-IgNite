@@ -378,10 +378,29 @@ function renderOrders() {
   }).join('');
 }
 
-function deleteOrder(orderId) {
-  if (!confirm('Slette denne bestillingen?')) return;
+async function deleteOrder(orderId) {
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+  if (!confirm('Slette bestilling fra ' + order.requester + '?')) return;
   orders = orders.filter(o => o.id !== orderId);
   saveOrders(); updateStats(); updatePendingCount(); renderOrders();
+
+  const itemsText = order.items.map((i, n) => {
+    return (n+1) + '. ' + i.name + ' (antall: ' + i.qty + ', hastegrad: ' + i.haste + ')';
+  }).join('\n');
+
+  try {
+    await fetch('https://formspree.io/f/xqevkead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        name: 'Jakob',
+        usage: '⚠️ SLETTET BESTILLING',
+        time: order.time + ' (slettet ' + new Date().toLocaleString('nb-NO') + ')',
+        items: 'Bestilling fra ' + order.requester + ' ble slettet:\n\n' + itemsText
+      })
+    });
+  } catch(e) {}
 }
 
 function clearAll() {
